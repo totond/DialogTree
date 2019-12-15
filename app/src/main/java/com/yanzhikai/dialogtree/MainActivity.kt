@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     private fun buildNodes() {
         val dialogA = buildDialog("A", "我是A")
         val data1 = Data1()
-        val nodeA = object: DialogTreeNode<Data1>(dialogA) {
+        val nodeA = object : DialogTreeNode<Data1>(dialogA, data1) {
             override fun onPreShow(data: Data1?) {
                 data?.a = 1
             }
@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dialogB = buildDialog("B", "我是B")
-        val nodeB = object: DialogTreeNode<Data1>(dialogB) {
+        val nodeB = object : DialogTreeNode<Data1>(dialogB, data1) {
             override fun shouldShow(data: Data1?): Boolean {
                 data?.let {
                     return it.b > 0
@@ -46,10 +46,44 @@ class MainActivity : AppCompatActivity() {
         }
 
         val dialogC = buildDialog("C", "我是C")
-        val nodeC = DialogTreeNode<Data1>(dialogC)
+        val nodeC = DialogTreeNode<Data1>(dialogC, data1)
+
+        val dialogD = buildDialog("D", "我是D")
+        val nodeD = object : DialogTreeNode<Data1>(dialogD, data1) {
+            override fun shouldShow(data: Data1?): Boolean {
+                data?.let {
+                    return it.d > 0
+                }
+                return false
+            }
+        }
+
+        val dialogE = buildDialog("E", "我是E")
+        val nodeE = object : DialogTreeNode<Data1>(dialogE, data1) {
+            override fun shouldShow(data: Data1?): Boolean {
+                data?.let {
+                    return it.e > 0
+                }
+                return false
+            }
+        }
+
+        val dialogF = buildDialog("F", "我是E")
+        val nodeF = object : DialogTreeNode<Data1>(dialogF, data1) {
+            override fun shouldShow(data: Data1?): Boolean {
+                data?.let {
+                    return it.f > 0
+                }
+                return false
+            }
+        }
 
         nodeA.positiveNode = nodeB
         nodeA.negativeNode = nodeC
+        nodeB.positiveNode = nodeD
+        nodeC.negativeNode = nodeF
+        nodeD.positiveNode = nodeE
+        nodeE.negativeNode = nodeF
 
         nodeA.start()
 

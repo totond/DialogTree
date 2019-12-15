@@ -14,12 +14,16 @@ import androidx.annotation.CallSuper
  * 测试用例实现
  * 多线程支持
  * 流程优化
+ * 检查是否覆盖原Dialog功能
  */
-open class DialogTreeNode<T>(private val dialogNode: DialogNode, private var data: T? = null) :
-    DTNodeCallBack<T>
-{
-    companion object
-    {
+open class DialogTreeNode<T>(
+    private val dialogNode: DialogNode,
+    private var data: T? = null,
+    private val alias: String? = null,
+    private val testMode: Boolean = false
+) :
+    DTNodeCallBack<T> {
+    companion object {
         private const val TAG = "DialogTreeNode"
     }
 
@@ -30,17 +34,16 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, private var dat
 
     init {
         dialogNode.positiveCallback = {
-            positiveNode?.show()
+            onPositiveCallback()
         }
 
         dialogNode.negativeCallback = {
-            negativeNode?.show()
+            onNegativeCallback()
         }
     }
 
 
-    override fun onShowCallback()
-    {
+    override fun onShowCallback() {
 
     }
 
@@ -49,23 +52,20 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, private var dat
     }
 
     @CallSuper
-    override fun onPositiveCallback()
-    {
+    override fun onPositiveCallback() {
         positiveNode?.start()
 
         dialogNode.dialog.dismiss()
     }
 
     @CallSuper
-    override fun onNegativeCallback()
-    {
+    override fun onNegativeCallback() {
         negativeNode?.start()
 
         dialogNode.dialog.dismiss()
     }
 
-    override fun onDismissCallback()
-    {
+    override fun onDismissCallback() {
 
     }
 
@@ -73,25 +73,33 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, private var dat
         return true
     }
 
-    open fun show()
-    {
+    open fun show() {
         dialogNode.dialog.show()
     }
 
-    fun start(){
+    fun start() {
 
         onPreShow(data)
 
-        if (shouldShow(data))
-        {
-            show()
+        if (shouldShow(data)) {
+            if (!testMode) {
+                show()
+            }
         }
     }
 
-    final override fun equals(other: Any?): Boolean
-    {
-        if (other is DialogTreeNode<*>)
-        {
+    fun testShow(positive: Boolean) {
+        if (shouldShow(data)) {
+            if (positive) {
+                onPositiveCallback()
+            } else {
+                onNegativeCallback()
+            }
+        }
+    }
+
+    final override fun equals(other: Any?): Boolean {
+        if (other is DialogTreeNode<*>) {
             return id == other.id
         }
         return false
