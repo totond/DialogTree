@@ -1,4 +1,4 @@
-package com.yanzhikai.dialogtree
+package com.yanzhikai.dialogtree.tree
 
 import java.util.concurrent.atomic.AtomicLong
 

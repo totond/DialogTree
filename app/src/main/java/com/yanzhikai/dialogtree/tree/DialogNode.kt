@@ -1,4 +1,4 @@
-package com.yanzhikai.dialogtree
+package com.yanzhikai.dialogtree.tree
 
 import android.app.AlertDialog
 import android.app.Dialog

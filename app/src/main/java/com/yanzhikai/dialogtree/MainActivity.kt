@@ -1,9 +1,10 @@
 package com.yanzhikai.dialogtree
 
 import android.app.AlertDialog
-import android.app.Dialog
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.yanzhikai.dialogtree.tree.DialogNode
+import com.yanzhikai.dialogtree.tree.DialogTreeNode
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -20,13 +21,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun buildNodes() {
         val dialogA = buildDialog("A", "我是A")
-        val nodeA = DialogTreeNode<Any>(dialogA)
+        val data1 = Data1()
+        val nodeA = object: DialogTreeNode<Data1>(dialogA) {
+            override fun onPreShow(data: Data1?) {
+                data?.a = 1
+            }
+
+            override fun shouldShow(data: Data1?): Boolean {
+                data?.let {
+                    return it.a > 0
+                }
+                return false
+            }
+        }
 
         val dialogB = buildDialog("B", "我是B")
-        val nodeB = DialogTreeNode<Any>(dialogB)
+        val nodeB = object: DialogTreeNode<Data1>(dialogB) {
+            override fun shouldShow(data: Data1?): Boolean {
+                data?.let {
+                    return it.b > 0
+                }
+                return false
+            }
+        }
 
         val dialogC = buildDialog("C", "我是C")
-        val nodeC = DialogTreeNode<Any>(dialogC)
+        val nodeC = DialogTreeNode<Data1>(dialogC)
 
         nodeA.positiveNode = nodeB
         nodeA.negativeNode = nodeC

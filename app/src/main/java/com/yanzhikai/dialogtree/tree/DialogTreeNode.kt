@@ -1,14 +1,22 @@
-package com.yanzhikai.dialogtree
+package com.yanzhikai.dialogtree.tree
 
 import androidx.annotation.CallSuper
 
 /**
  *
- *
  * @author jacketyan
  * @date 2019/9/9
  */
-open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null) : DTNodeCallBack
+/**
+ * todo
+ * 注释优化
+ * 测试方式实现
+ * 测试用例实现
+ * 多线程支持
+ * 流程优化
+ */
+open class DialogTreeNode<T>(private val dialogNode: DialogNode, private var data: T? = null) :
+    DTNodeCallBack<T>
 {
     companion object
     {
@@ -17,8 +25,8 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null
 
     internal val id: Long = DTIdGenerator.instance.generate()
 
-    var positiveNode: DialogTreeNode<T>? = null
-    var negativeNode: DialogTreeNode<T>? = null
+    var positiveNode: DialogTreeNode<out Any>? = null
+    var negativeNode: DialogTreeNode<out Any>? = null
 
     init {
         dialogNode.positiveCallback = {
@@ -36,7 +44,7 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null
 
     }
 
-    override fun onPreShowCallBack() {
+    override fun onPreShow(data: T?) {
 
     }
 
@@ -61,8 +69,7 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null
 
     }
 
-    override fun onShouldShowCallback(): Boolean
-    {
+    override fun shouldShow(data: T?): Boolean {
         return true
     }
 
@@ -73,9 +80,9 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null
 
     fun start(){
 
-        onPreShowCallBack()
+        onPreShow(data)
 
-        if (onShouldShowCallback())
+        if (shouldShow(data))
         {
             show()
         }
@@ -88,6 +95,10 @@ open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null
             return id == other.id
         }
         return false
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
     }
 
 }
