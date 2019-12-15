@@ -14,6 +14,8 @@ interface DTNodeCallBack
 
     fun onDismissCallback()
 
+    fun onPreShowCallBack()
+
     fun onShouldShowCallback(): Boolean
 
     fun onShowCallback()

@@ -1,9 +1,6 @@
 package com.yanzhikai.dialogtree
 
-import android.app.Dialog
 import androidx.annotation.CallSuper
-import io.reactivex.Flowable
-import java.util.concurrent.Callable
 
 /**
  *
@@ -11,7 +8,7 @@ import java.util.concurrent.Callable
  * @author jacketyan
  * @date 2019/9/9
  */
-open class DialogTreeNode<T>(val dialog: Dialog) : DTNodeCallBack
+open class DialogTreeNode<T>(private val dialogNode: DialogNode, data: T? = null) : DTNodeCallBack
 {
     companion object
     {
@@ -23,22 +20,40 @@ open class DialogTreeNode<T>(val dialog: Dialog) : DTNodeCallBack
     var positiveNode: DialogTreeNode<T>? = null
     var negativeNode: DialogTreeNode<T>? = null
 
+    init {
+        dialogNode.positiveCallback = {
+            positiveNode?.show()
+        }
+
+        dialogNode.negativeCallback = {
+            negativeNode?.show()
+        }
+    }
+
 
     override fun onShowCallback()
     {
 
     }
 
+    override fun onPreShowCallBack() {
+
+    }
+
     @CallSuper
     override fun onPositiveCallback()
     {
-        handleNextNode(positiveNode)
+        positiveNode?.start()
+
+        dialogNode.dialog.dismiss()
     }
 
     @CallSuper
     override fun onNegativeCallback()
     {
-        handleNextNode(negativeNode)
+        negativeNode?.start()
+
+        dialogNode.dialog.dismiss()
     }
 
     override fun onDismissCallback()
@@ -53,19 +68,17 @@ open class DialogTreeNode<T>(val dialog: Dialog) : DTNodeCallBack
 
     open fun show()
     {
-        dialog.show()
+        dialogNode.dialog.show()
     }
 
-    fun handleNextNode(node: DialogTreeNode<T>?)
-    {
+    fun start(){
 
+        onPreShowCallBack()
 
-        if (node?.onShouldShowCallback() == true)
+        if (onShouldShowCallback())
         {
-            node.show()
+            show()
         }
-        dialog.dismiss()
-        return
     }
 
     final override fun equals(other: Any?): Boolean
@@ -76,4 +89,5 @@ open class DialogTreeNode<T>(val dialog: Dialog) : DTNodeCallBack
         }
         return false
     }
+
 }
