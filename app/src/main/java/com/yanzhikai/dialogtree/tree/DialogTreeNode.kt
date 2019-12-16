@@ -1,5 +1,6 @@
 package com.yanzhikai.dialogtree.tree
 
+import android.text.TextUtils
 import androidx.annotation.CallSuper
 
 /**
@@ -19,8 +20,7 @@ import androidx.annotation.CallSuper
 open class DialogTreeNode<T>(
     private val dialogNode: DialogNode,
     private var data: T? = null,
-    private val alias: String? = null,
-    private val testMode: Boolean = false
+    var alias: String = ""
 ) :
     DTNodeCallBack<T> {
     companion object {
@@ -33,6 +33,10 @@ open class DialogTreeNode<T>(
     var negativeNode: DialogTreeNode<out Any>? = null
 
     init {
+        if (TextUtils.isEmpty(alias)) {
+            alias = id.toString()
+        }
+
         dialogNode.positiveCallback = {
             onPositiveCallback()
         }
@@ -82,9 +86,7 @@ open class DialogTreeNode<T>(
         onPreShow(data)
 
         if (shouldShow(data)) {
-            if (!testMode) {
-                show()
-            }
+            show()
         }
     }
 
