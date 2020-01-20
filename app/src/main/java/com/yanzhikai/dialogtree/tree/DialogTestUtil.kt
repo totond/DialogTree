@@ -4,7 +4,9 @@ import java.lang.StringBuilder
 
 object DialogTestUtil {
 
-    const val DIALOG_END = "end"
+    const val DIALOG_END = "#end"
+
+    const val DIALOG_REPEAT = "#repeat"
 
     // region 找出每一个可能的分支，先序遍历
 

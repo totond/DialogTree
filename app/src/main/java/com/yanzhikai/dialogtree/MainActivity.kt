@@ -1,9 +1,11 @@
 package com.yanzhikai.dialogtree
 
 import android.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.SparseArray
+import androidx.appcompat.app.AppCompatActivity
+import com.yanzhikai.dialogtree.tree.DTNodeCallBack
 import com.yanzhikai.dialogtree.tree.DialogNode
 import com.yanzhikai.dialogtree.tree.DialogTestUtil
 import com.yanzhikai.dialogtree.tree.DialogTreeNode
@@ -107,5 +109,25 @@ class MainActivity : AppCompatActivity() {
             .setMessage(content)
 
         return DialogNode.create(builder, "是", "否")
+    }
+
+    private fun buildDialog1(title: String, content: String): DialogNode {
+        val builder = AlertDialog.Builder(this)
+        val  positiveCallBack = DialogNode.DialogButtonCallback()
+        val  negativeCallback = DialogNode.DialogButtonCallback()
+        builder.setTitle(title)
+            .setMessage(content)
+            .setPositiveButton("是"){_,_ ->
+                positiveCallBack.onCall()
+            }
+            .setNegativeButton("否"){_,_ ->
+                negativeCallback.onCall()
+            }
+
+        val sparseArray = SparseArray<DialogNode.DialogButtonCallback>()
+        sparseArray.put(DTNodeCallBack.ButtonType.POSITIVE, positiveCallBack)
+        sparseArray.put(DTNodeCallBack.ButtonType.NEGATIVE, negativeCallback)
+
+        return DialogNode.create(builder.create(), sparseArray)
     }
 }

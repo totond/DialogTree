@@ -1,7 +1,16 @@
 package com.yanzhikai.dialogtree.tree
 
 import android.text.TextUtils
+import android.util.Log
+import android.util.SparseArray
 import androidx.annotation.CallSuper
+import androidx.core.util.forEach
+import androidx.core.util.set
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 
 /**
  *
@@ -13,7 +22,6 @@ import androidx.annotation.CallSuper
  * 注释优化
  * 测试方式实现
  * 测试用例实现
- * 多线程支持
  * 流程优化
  * 检查是否覆盖原Dialog功能
  */
@@ -30,20 +38,35 @@ open class DialogTreeNode<T>(
     internal val id: Long = DTIdGenerator.instance.generate()
 
     var positiveNode: DialogTreeNode<out Any>? = null
+        set(value) {
+            childNodes[DTNodeCallBack.ButtonType.NEGATIVE] = value
+            field = value
+        }
+
     var negativeNode: DialogTreeNode<out Any>? = null
+        set(value) {
+            childNodes[DTNodeCallBack.ButtonType.NEGATIVE] = value
+            field = value
+        }
+
+    var childNodes: SparseArray<DialogTreeNode<out Any>?> = SparseArray(2)
+
+    private val compositeDisposable = CompositeDisposable()
 
     init {
         if (TextUtils.isEmpty(alias)) {
             alias = id.toString()
         }
 
-        dialogNode.positiveCallback = {
-            onPositiveCallback()
+        dialogNode.dismissCallback = {
+            onDismissCall()
         }
 
-        dialogNode.negativeCallback = {
-            onNegativeCallback()
+
+        dialogNode.callBacks.forEach { key, value ->
+            value.callBack = { callButtonClick(key) }
         }
+
     }
 
 
@@ -52,25 +75,34 @@ open class DialogTreeNode<T>(
     }
 
     override fun onPreShow(data: T?) {
+    }
+
+    override fun getPreShowObservable(data: T?): Observable<Any> {
+        return Observable.create<Any> {
+            onPreShow(data)
+            it.onNext(Any())
+        }
+            .subscribeOn(Schedulers.io())
+    }
+
+    @CallSuper
+    override fun onPositiveCall() {
+        onNodeCall(positiveNode)
+    }
+
+    @CallSuper
+    override fun onNegativeCall() {
+        onNodeCall(negativeNode)
 
     }
 
     @CallSuper
-    override fun onPositiveCallback() {
-        positiveNode?.start()
-
-        dialogNode.dialog.dismiss()
+    override fun onOtherButtonsCall(key: Int) {
+        onNodeCall(childNodes.get(key))
     }
 
-    @CallSuper
-    override fun onNegativeCallback() {
-        negativeNode?.start()
-
-        dialogNode.dialog.dismiss()
-    }
-
-    override fun onDismissCallback() {
-
+    override fun onDismissCall() {
+        Log.i(TAG, "onDismissCall")
     }
 
     override fun shouldShow(data: T?): Boolean {
@@ -81,22 +113,46 @@ open class DialogTreeNode<T>(
         dialogNode.dialog.show()
     }
 
-    fun start() {
+    fun start(): Disposable {
 
-        onPreShow(data)
-
-        if (shouldShow(data)) {
-            show()
-        }
+        val disposable = getPreShowObservable(data)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                if (shouldShow(data)) {
+                    show()
+                }
+            }
+        compositeDisposable.add(disposable)
+        return compositeDisposable
     }
 
     fun testShow(positive: Boolean) {
         if (shouldShow(data)) {
             if (positive) {
-                onPositiveCallback()
+                onPositiveCall()
             } else {
-                onNegativeCallback()
+                onNegativeCall()
             }
+        }
+    }
+
+    fun onDestroy() {
+        compositeDisposable.clear()
+    }
+
+    private fun onNodeCall(node: DialogTreeNode<out Any>?) {
+        node?.let {
+            compositeDisposable.add(it.start())
+        }
+
+        dialogNode.dialog.dismiss()
+    }
+
+    private fun callButtonClick(key: Int) {
+        when (key) {
+            DTNodeCallBack.ButtonType.POSITIVE -> onPositiveCall()
+            DTNodeCallBack.ButtonType.NEGATIVE -> onNegativeCall()
+            else -> onOtherButtonsCall(key)
         }
     }
 
