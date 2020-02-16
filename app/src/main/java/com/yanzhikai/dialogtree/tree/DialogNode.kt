@@ -7,12 +7,23 @@ import android.util.SparseArray
 import androidx.core.util.putAll
 import androidx.core.util.set
 
+/**
+ * 用于生成DialogTreeNode转化器
+ * 把用户使用的Dialog，转化为DialogTreeNode所需要的DialogNode
+ */
 class DialogNode private constructor(initialCallbackNum: Int) {
     lateinit var dialog: Dialog
     var dismissCallback: (() -> Unit)? = null
     var callBacks: SparseArray<DialogButtonCallback> = SparseArray(initialCallbackNum)
 
     companion object {
+        /**
+         * 通过传入AlertDialog.Builder来生成DialogNode
+         * @param alertDialogBuilder Builder
+         * @param positive String? 确认按钮文案，为空则是没有确认回调
+         * @param negative String? 取消按钮文案，为空则是没有确认回调
+         * @return DialogNode
+         */
         @JvmStatic
         fun create(
             alertDialogBuilder: AlertDialog.Builder,
@@ -26,7 +37,7 @@ class DialogNode private constructor(initialCallbackNum: Int) {
                 alertDialogBuilder.setPositiveButton(positive) { _: DialogInterface, _: Int ->
                     positiveCallback.onCall()
                 }
-                dialogNode.callBacks[DTNodeCallBack.ButtonType.POSITIVE] = positiveCallback
+                dialogNode.callBacks[DTNodeCallBack.Type.POSITIVE] = positiveCallback
             }
 
             negative?.let {
@@ -34,7 +45,7 @@ class DialogNode private constructor(initialCallbackNum: Int) {
                 alertDialogBuilder.setNegativeButton(negative) { _: DialogInterface, _: Int ->
                     negativeCallback.onCall()
                 }
-                dialogNode.callBacks[DTNodeCallBack.ButtonType.NEGATIVE] = negativeCallback
+                dialogNode.callBacks[DTNodeCallBack.Type.NEGATIVE] = negativeCallback
             }
 
             dialogNode.dialog = alertDialogBuilder.create()
@@ -45,6 +56,13 @@ class DialogNode private constructor(initialCallbackNum: Int) {
         }
 
 
+        /**
+         * 通过传入AlertDialog来生成DialogNode
+         * @param dialog dialog
+         * @param positive String? 确认按钮文案，为空则是没有确认回调
+         * @param negative String? 取消按钮文案，为空则是没有确认回调
+         * @return DialogNode
+         */
         @JvmStatic
         fun create(dialog: AlertDialog, positive: String?, negative: String?): DialogNode {
             val dialogNode = DialogNode(2)
@@ -54,7 +72,7 @@ class DialogNode private constructor(initialCallbackNum: Int) {
                 dialog.setButton(DialogInterface.BUTTON_POSITIVE, positive) { _: DialogInterface, _: Int ->
                     positiveCallback.onCall()
                 }
-                dialogNode.callBacks[DTNodeCallBack.ButtonType.POSITIVE] = positiveCallback
+                dialogNode.callBacks[DTNodeCallBack.Type.POSITIVE] = positiveCallback
             }
 
             negative?.let {
@@ -62,7 +80,7 @@ class DialogNode private constructor(initialCallbackNum: Int) {
                 dialog.setButton(DialogInterface.BUTTON_NEGATIVE, negative) { _: DialogInterface, _: Int ->
                     negativeCallback.onCall()
                 }
-                dialogNode.callBacks[DTNodeCallBack.ButtonType.NEGATIVE] = negativeCallback
+                dialogNode.callBacks[DTNodeCallBack.Type.NEGATIVE] = negativeCallback
             }
 
             dialog.setOnDismissListener {
@@ -73,6 +91,13 @@ class DialogNode private constructor(initialCallbackNum: Int) {
             return dialogNode
         }
 
+        /**
+         * 自定义Dialog的转化方式
+         * @param dialog Dialog
+         * @param callBacks SparseArray<DialogButtonCallback> 需要以key，value方式传入callBack：
+         *                  key作为识别callBacks的标识（具体规则是>= 0参考DTNodeCallBack.CallBackType），value则是实现DialogButtonCallback的方式
+         * @return DialogNode
+         */
         @JvmStatic
         fun create(dialog: Dialog, callBacks: SparseArray<DialogButtonCallback>): DialogNode {
             val dialogNode = DialogNode(callBacks.size() + 2)

@@ -9,11 +9,11 @@ import androidx.core.util.set
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
 /**
- *
+ * Dialog管理控件，把每个需要弹出的Dialog的逻辑（为什么弹，弹的内容，点击回调）
+ * 使用者可以继承DialogTreeNode，传入data，按需实现各个回调
  * @author jacketyan
  * @date 2019/9/9
  */
@@ -22,8 +22,6 @@ import io.reactivex.schedulers.Schedulers
  * 注释优化
  * 测试方式实现
  * 测试用例实现
- * 流程优化
- * 检查是否覆盖原Dialog功能
  */
 open class DialogTreeNode<T>(
     private val dialogNode: DialogNode,
@@ -39,13 +37,13 @@ open class DialogTreeNode<T>(
 
     var positiveNode: DialogTreeNode<out Any>? = null
         set(value) {
-            childNodes[DTNodeCallBack.ButtonType.NEGATIVE] = value
+            childNodes[DTNodeCallBack.Type.NEGATIVE] = value
             field = value
         }
 
     var negativeNode: DialogTreeNode<out Any>? = null
         set(value) {
-            childNodes[DTNodeCallBack.ButtonType.NEGATIVE] = value
+            childNodes[DTNodeCallBack.Type.NEGATIVE] = value
             field = value
         }
 
@@ -77,6 +75,7 @@ open class DialogTreeNode<T>(
     override fun onPreShow(data: T?) {
     }
 
+    @CallSuper
     override fun getPreShowObservable(data: T?): Observable<Any> {
         return Observable.create<Any> {
             onPreShow(data)
@@ -97,7 +96,7 @@ open class DialogTreeNode<T>(
     }
 
     @CallSuper
-    override fun onOtherButtonsCall(key: Int) {
+    override fun onCall(key: Int) {
         onNodeCall(childNodes.get(key))
     }
 
@@ -105,33 +104,42 @@ open class DialogTreeNode<T>(
         Log.i(TAG, "onDismissCall")
     }
 
-    override fun shouldShow(data: T?): Boolean {
-        return true
+    override fun showWhat(data: T?): Int? {
+        return DTNodeCallBack.Type.THIS
     }
 
     open fun show() {
         dialogNode.dialog.show()
     }
 
-    fun start(): Disposable {
+    /**
+     * 从这个节点开始
+     * @return CompositeDisposable
+     */
+    fun start(): CompositeDisposable {
 
         val disposable = getPreShowObservable(data)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                if (shouldShow(data)) {
-                    show()
+                val show = showWhat(data)
+                if (show != null) {
+                    if (show == DTNodeCallBack.Type.THIS) {
+                        show()
+                    } else {
+                        onCall(show)
+                    }
                 }
             }
         compositeDisposable.add(disposable)
         return compositeDisposable
     }
 
-    fun testShow(positive: Boolean) {
-        if (shouldShow(data)) {
-            if (positive) {
-                onPositiveCall()
+    fun testShow(show: Int?) {
+        if (show != null) {
+            if (show == DTNodeCallBack.Type.THIS) {
+                show()
             } else {
-                onNegativeCall()
+                onCall(show)
             }
         }
     }
@@ -150,9 +158,9 @@ open class DialogTreeNode<T>(
 
     private fun callButtonClick(key: Int) {
         when (key) {
-            DTNodeCallBack.ButtonType.POSITIVE -> onPositiveCall()
-            DTNodeCallBack.ButtonType.NEGATIVE -> onNegativeCall()
-            else -> onOtherButtonsCall(key)
+            DTNodeCallBack.Type.POSITIVE -> onPositiveCall()
+            DTNodeCallBack.Type.NEGATIVE -> onNegativeCall()
+            else -> onCall(key)
         }
     }
 

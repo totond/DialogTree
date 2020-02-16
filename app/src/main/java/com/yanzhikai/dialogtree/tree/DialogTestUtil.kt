@@ -2,6 +2,9 @@ package com.yanzhikai.dialogtree.tree
 
 import java.lang.StringBuilder
 
+/**
+ * DialogTree测试工具
+ */
 object DialogTestUtil {
 
     const val DIALOG_END = "#end"

@@ -1,25 +1,25 @@
 package com.yanzhikai.dialogtree
 
 import android.app.AlertDialog
-import android.os.Bundle
 import android.util.Log
-import android.util.SparseArray
-import androidx.appcompat.app.AppCompatActivity
+import androidx.test.platform.app.InstrumentationRegistry
 import com.yanzhikai.dialogtree.tree.DTNodeCallBack
 import com.yanzhikai.dialogtree.tree.DialogNode
 import com.yanzhikai.dialogtree.tree.DialogTestUtil
 import com.yanzhikai.dialogtree.tree.DialogTreeNode
-import kotlinx.android.synthetic.main.activity_main.*
+import org.junit.Test
 
-class MainActivity : AppCompatActivity() {
+/**
+ * author: jacketyan
+ * date: 2020/2/16
+ */
+class DialogTreeTest{
+    val context = InstrumentationRegistry.getInstrumentation().targetContext
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        tv_test.setOnClickListener {
-            buildNodes()
-        }
+    @Test
+    fun testDialog()
+    {
+        buildNodes()
 
     }
 
@@ -36,11 +36,6 @@ class MainActivity : AppCompatActivity() {
                     return if (it.a > 0) DTNodeCallBack.Type.THIS else null
                 }
                 return null
-            }
-
-            override fun onPositiveCall() {
-                super.onPositiveCall()
-                Log.i("jky", "onPositiveCall A")
             }
         }
 
@@ -109,30 +104,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildDialog(title: String, content: String): DialogNode {
-        val builder = AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(context)
         builder.setTitle(title)
             .setMessage(content)
 
         return DialogNode.create(builder, "是", "否")
-    }
-
-    private fun buildDialog1(title: String, content: String): DialogNode {
-        val builder = AlertDialog.Builder(this)
-        val  positiveCallBack = DialogNode.DialogButtonCallback()
-        val  negativeCallback = DialogNode.DialogButtonCallback()
-        builder.setTitle(title)
-            .setMessage(content)
-            .setPositiveButton("是"){_,_ ->
-                positiveCallBack.onCall()
-            }
-            .setNegativeButton("否"){_,_ ->
-                negativeCallback.onCall()
-            }
-
-        val sparseArray = SparseArray<DialogNode.DialogButtonCallback>()
-        sparseArray.put(DTNodeCallBack.Type.POSITIVE, positiveCallBack)
-        sparseArray.put(DTNodeCallBack.Type.NEGATIVE, negativeCallback)
-
-        return DialogNode.create(builder.create(), sparseArray)
     }
 }
