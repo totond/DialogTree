@@ -1,9 +1,9 @@
 package com.yanzhikai.dialogtree
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.os.Bundle
 import android.util.Log
-import android.util.SparseArray
 import androidx.appcompat.app.AppCompatActivity
 import com.yanzhikai.dialogtree.tree.DTNodeCallBack
 import com.yanzhikai.dialogtree.tree.DialogNode
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildNodes() {
-        val dialogA = buildDialog("A", "我是A")
+        val dialogA = buildDialog1("A", "我是A")
         val data1 = Data1()
         val nodeA = object : DialogTreeNode<Data1>(dialogA, data1, "a") {
             override fun onPreShow(data: Data1?) {
@@ -41,6 +41,11 @@ class MainActivity : AppCompatActivity() {
             override fun onPositiveCall() {
                 super.onPositiveCall()
                 Log.i("jky", "onPositiveCall A")
+            }
+
+            override fun onCall(key: Int) {
+                super.onCall(key)
+                Log.i("jky", "onCall A $key")
             }
         }
 
@@ -102,37 +107,52 @@ class MainActivity : AppCompatActivity() {
         nodeD.positiveNode = nodeE
         nodeE.negativeNode = nodeF
 
+        nodeA.childNodes[3] = nodeC
+
         nodeA.start()
 
         Log.i("jky", DialogTestUtil.getOutputTrees(nodeA).toString())
 
     }
 
-    private fun buildDialog(title: String, content: String): DialogNode {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(title)
-            .setMessage(content)
+    private fun buildDialog(title: String, content: String): DialogNode<Data1> {
+        return object : DialogNode<Data1>(2) {
+            override fun buildDialog(): Dialog {
+                val builder = AlertDialog.Builder(this@MainActivity)
 
-        return DialogNode.create(builder, "是", "否")
+                return DialogNode.createDialog(builder.setTitle(title).setMessage(content).create(),"是", "否", this)
+            }
+
+        }
     }
 
-    private fun buildDialog1(title: String, content: String): DialogNode {
-        val builder = AlertDialog.Builder(this)
-        val  positiveCallBack = DialogNode.DialogButtonCallback()
-        val  negativeCallback = DialogNode.DialogButtonCallback()
-        builder.setTitle(title)
-            .setMessage(content)
-            .setPositiveButton("是"){_,_ ->
-                positiveCallBack.onCall()
-            }
-            .setNegativeButton("否"){_,_ ->
-                negativeCallback.onCall()
+    private fun buildDialog1(title: String, content: String): DialogNode<Data1> {
+        return object : DialogNode<Data1>(2) {
+            override fun buildDialog(): Dialog {
+                val builder = AlertDialog.Builder(this@MainActivity)
+                val positiveCallBack = DialogNode.DialogButtonCallback()
+                val negativeCallback = DialogNode.DialogButtonCallback()
+                val thirdCallback = DialogNode.DialogButtonCallback()
+                builder.setTitle(title)
+                    .setMessage(content)
+                    .setPositiveButton("是") { _, _ ->
+                        positiveCallBack.onCall()
+                    }
+                    .setNegativeButton("否") { _, _ ->
+                        negativeCallback.onCall()
+                    }
+                    .setNeutralButton("第三个") { _, _ ->
+                        thirdCallback.onCall()
+                    }
+
+                callBacks.put(DTNodeCallBack.Type.POSITIVE, positiveCallBack)
+                callBacks.put(DTNodeCallBack.Type.NEGATIVE, negativeCallback)
+                callBacks.put(3, thirdCallback)
+
+                return builder.create()
             }
 
-        val sparseArray = SparseArray<DialogNode.DialogButtonCallback>()
-        sparseArray.put(DTNodeCallBack.Type.POSITIVE, positiveCallBack)
-        sparseArray.put(DTNodeCallBack.Type.NEGATIVE, negativeCallback)
+        }
 
-        return DialogNode.create(builder.create(), sparseArray)
     }
 }

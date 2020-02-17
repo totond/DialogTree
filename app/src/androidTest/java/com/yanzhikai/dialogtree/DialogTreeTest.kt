@@ -1,6 +1,7 @@
 package com.yanzhikai.dialogtree
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yanzhikai.dialogtree.tree.DTNodeCallBack
@@ -103,11 +104,14 @@ class DialogTreeTest{
 
     }
 
-    private fun buildDialog(title: String, content: String): DialogNode {
-        val builder = AlertDialog.Builder(context)
-        builder.setTitle(title)
-            .setMessage(content)
+    private fun buildDialog(title: String, content: String): DialogNode<Data1> {
+        return object : DialogNode<Data1>(2) {
+            override fun buildDialog(): Dialog {
+                val builder = AlertDialog.Builder(context)
 
-        return DialogNode.create(builder, "是", "否")
+                return DialogNode.createDialog(builder.setTitle(title).setMessage(content).create(),"是", "否", this)
+            }
+
+        }
     }
 }

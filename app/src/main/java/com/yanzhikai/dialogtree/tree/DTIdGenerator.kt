@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicLong
  *
  *
  * @author jacketyan
- * @date 2019/9/9
+ * @date 2019/11/12
  */
 class DTIdGenerator private constructor(){
     companion object {
