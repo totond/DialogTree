@@ -8,7 +8,6 @@ import io.reactivex.Observable
 
 /**
  *
- *
  * @author jacketyan
  * @date 2019/11/12
  */
@@ -16,12 +15,12 @@ interface DTNodeCallBack<T> {
     /**
      * 确认按钮回调
      */
-    fun onPositiveCall()
+    fun onPositiveNodeCall()
 
     /**
      * 取消按钮回调
      */
-    fun onNegativeCall()
+    fun onNegativeNodeCall()
 
     /**
      * 所有Dialog的key按钮回调，需要自定义key值
@@ -36,23 +35,23 @@ interface DTNodeCallBack<T> {
 
     /**
      * Dialog展示前数据处理回调
-     * @param data T?
+     * @param data T
      */
-    fun onPreShow(data: T?)
+    fun onPreShow(data: T)
 
     /**
      * 异步调用方式
-     * @param data T?
+     * @param data T
      * @return Observable<Any>
      */
-    fun getPreShowObservable(data: T?): Observable<Any>
+    fun interceptPreShowObservable(data: T): Observable<Any>
 
     /**
      * 应该展示哪种回调
-     * @param data T?
+     * @param data T
      * @return Int 回调结果,返回空则是流程结束，可参考CallBackType，也可以自定义
      */
-    fun showWhat(data: T?): Int?
+    fun showWhat(data: T): Int?
 
     fun onShowCallback()
 

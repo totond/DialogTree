@@ -22,12 +22,13 @@ abstract class DialogNode<T> constructor(initialCallbackNum: Int) {
 
     /**
      * 生成Dialog的方法，使用者可以通过需要重写这个方法进行DialogNode.callBacks与Dialog按钮回调的绑定
+     * @param data T 可以根据传入的数据来确定Dialog的表现
      * @return Dialog
      */
-    abstract fun buildDialog(): Dialog
+    abstract fun buildDialog(data: T): Dialog
 
-    fun init() {
-        dialog = buildDialog()
+    fun init(data: T) {
+        dialog = buildDialog(data)
     }
 
     fun show() {

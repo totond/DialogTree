@@ -4,10 +4,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yanzhikai.dialogtree.tree.DTNodeCallBack
-import com.yanzhikai.dialogtree.tree.DialogNode
-import com.yanzhikai.dialogtree.tree.DialogTestUtil
-import com.yanzhikai.dialogtree.tree.DialogTreeNode
+import com.yanzhikai.dialogtree.tree.*
 import org.junit.Test
 
 /**
@@ -106,10 +103,10 @@ class DialogTreeTest{
 
     private fun buildDialog(title: String, content: String): DialogNode<Data1> {
         return object : DialogNode<Data1>(2) {
-            override fun buildDialog(): Dialog {
+            override fun buildDialog(data: Data1?): Dialog {
                 val builder = AlertDialog.Builder(context)
 
-                return DialogNode.createDialog(builder.setTitle(title).setMessage(content).create(),"是", "否", this)
+                return DialogNodeUtils.createDialog(builder.setTitle(title).setMessage(content).create(),"是", "否", this)
             }
 
         }

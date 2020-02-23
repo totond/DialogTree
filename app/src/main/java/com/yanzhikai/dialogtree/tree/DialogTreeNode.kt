@@ -6,7 +6,6 @@ import androidx.annotation.CallSuper
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlin.collections.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -21,7 +20,7 @@ import kotlin.collections.set
  */
 open class DialogTreeNode<T>(
     private val rawDialogNode: DialogNode<T>,
-    private var data: T? = null,
+    private var data: T,
     var alias: String = ""
 ) :
     DTNodeCallBack<T> {
@@ -30,7 +29,7 @@ open class DialogTreeNode<T>(
     }
 
     private val dialogNode by lazy {
-        rawDialogNode.init()
+        rawDialogNode.init(data)
         rawDialogNode.dismissCallback = {
             onDismissCall()
         }
@@ -58,42 +57,59 @@ open class DialogTreeNode<T>(
 
     var childNodes: HashMap<Int, DialogTreeNode<out Any>?> = HashMap(2)
 
+    private var showNode: Int? = DTNodeCallBack.Type.THIS
+
     private val compositeDisposable = CompositeDisposable()
 
     init {
         if (TextUtils.isEmpty(alias)) {
             alias = id.toString()
         }
-
     }
 
+    fun setShowNode(node: Int?){
+        showNode = node
+    }
 
     override fun onShowCallback() {
 
     }
 
-    override fun onPreShow(data: T?) {
+    override fun onPreShow(data: T) {
     }
 
+    /**
+     * 异步调用方式，可以通过重写此方法实现异步调用
+     * 1.给super返回的Observable切一个线程subscribeOn(xx)，相当于onPreShow()切线程
+     * 2.return一个由super返回的Observable和实际异步Observable的zip起来的Observable<Any>
+     * 3.直接不使用super的结果，return一个自定义的observable<Any>
+     * @param data T
+     * @return Observable<Any>
+     */
     @CallSuper
-    override fun getPreShowObservable(data: T?): Observable<Any> {
+    override fun interceptPreShowObservable(data: T): Observable<Any> {
         return Observable.create<Any> {
             onPreShow(data)
             it.onNext(Any())
         }
-            .subscribeOn(Schedulers.io())
     }
 
     @CallSuper
-    override fun onPositiveCall() {
+    final override fun onPositiveNodeCall() {
+        onPositiveCall(data)
         onNodeCall(positiveNode)
     }
 
     @CallSuper
-    override fun onNegativeCall() {
+    final override fun onNegativeNodeCall() {
+        onNegativeCall(data)
         onNodeCall(negativeNode)
 
     }
+
+    open fun onPositiveCall(data: T) {}
+
+    open fun onNegativeCall(data: T) {}
 
     @CallSuper
     override fun onCall(key: Int) {
@@ -104,8 +120,13 @@ open class DialogTreeNode<T>(
         Log.i(TAG, "onDismissCall")
     }
 
-    override fun showWhat(data: T?): Int? {
-        return DTNodeCallBack.Type.THIS
+    /**
+     * 默认展示自己
+     * @param data T
+     * @return Int?
+     */
+    override fun showWhat(data: T): Int? {
+        return showNode
     }
 
     open fun show() {
@@ -118,7 +139,7 @@ open class DialogTreeNode<T>(
      */
     fun start(): CompositeDisposable {
 
-        val disposable = getPreShowObservable(data)
+        val disposable = interceptPreShowObservable(data)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 val show = showWhat(data)
@@ -162,8 +183,8 @@ open class DialogTreeNode<T>(
      */
     private fun callButtonClick(key: Int) {
         when (key) {
-            DTNodeCallBack.Type.POSITIVE -> onPositiveCall()
-            DTNodeCallBack.Type.NEGATIVE -> onNegativeCall()
+            DTNodeCallBack.Type.POSITIVE -> onPositiveNodeCall()
+            DTNodeCallBack.Type.NEGATIVE -> onNegativeNodeCall()
             else -> onCall(key)
         }
     }
