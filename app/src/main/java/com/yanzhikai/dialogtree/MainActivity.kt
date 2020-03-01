@@ -38,7 +38,6 @@ class MainActivity : AppCompatActivity() {
                 data.let {
                     return if (it.a > 0) DTNodeCallBack.Type.THIS else null
                 }
-                return null
             }
 
             override fun onPositiveCall(data: Data1) {

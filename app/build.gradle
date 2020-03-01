@@ -7,13 +7,6 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.1"
-
-    testOptions {
-        unitTests {
-            includeAndroidResources = true
-        }
-    }
-
     defaultConfig {
         applicationId "com.yanzhikai.dialogtree"
         minSdkVersion 15
@@ -28,6 +21,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -38,13 +36,13 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
-
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.2'
 
+    // Required -- JUnit 4 framework
     testImplementation 'junit:junit:4.12'
-//    testImplementation 'org.assertj:assertj-core:1.7.0'
-//    testImplementation 'org.robolectric:robolectric:4.3.1'
-//    compile files('libs/AndroidHyperion_1.0.0_release.jar')
-//    testImplementation 'com.squareup.okhttp:mockwebserver:2.4.0'
+    // Optional -- Mockito framework（可选，用于模拟一些依赖对象，以达到隔离依赖的效果）
+    testImplementation "org.mockito:mockito-core:+"
+    androidTestImplementation "org.mockito:mockito-android:+"
+
 }
